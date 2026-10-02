@@ -1,0 +1,2291 @@
+One customer
+One project
+One invoice
+One project identification code
+The system must validate that all four references are consistent.
+
+Payments may be partial, but unidentified or unallocated payments are not permitted in the operational payment workflow.
+
+3.5 Accounts Receivable
+Implement accounts-receivable calculations using:
+
+text
+
+
+Adjusted Amount Due =
+Original Invoice Amount
+- Approved Credits
+- Approved Refunds
+- Approved Adjustments
+text
+
+
+Remaining Balance =
+Adjusted Amount Due
+- Verified Amount Paid
+The system must preserve the original invoice amount and each subsequent financial event separately.
+
+3.6 Credits, Refunds, and Adjustments
+Implement adjustment records for:
+
+Credits
+Refunds
+Price adjustments
+Other approved adjustments
+Each adjustment must include:
+
+Adjustment ID
+Project ID
+Invoice ID
+Adjustment type
+Amount
+Reason
+Requestor
+Request date and time
+Approval status
+Approver
+Approval date and time
+Effective date
+Related payment, when applicable
+Related Master Sales Record version, when applicable
+Notes
+The Sales Manager must approve credits, refunds, and adjustments.
+
+3.7 Accounts-Payable Data Model
+Implement payable records with:
+
+Payable ID
+Project ID
+Vendor ID
+Payable category
+Description
+Amount owed
+Certificate ID
+Certificate signing date
+Payable creation date
+Due date
+Payment date
+Payment method
+Amount paid
+Outstanding balance
+Payment status
+Approval status
+Created by
+Approved by
+Approval date
+Notes
+Related Master Sales Record version
+Accounting references
+Permitted payable categories:
+
+Equipment
+Dealer fee
+Materials
+3.8 Automatic Payable Creation
+When the Certificate reaches the fully signed state, the system must:
+
+Confirm the Certificate status.
+Identify the applicable approved costs.
+Create separate payables for equipment, dealer fees, and materials.
+Use the Certificate signing date as the payable trigger date.
+Prevent duplicate payable creation.
+Link each payable to the Certificate and project.
+Create an audit event.
+Display the payable in the accounts-payable workflow.
+Payable creation does not require GECC to have paid the vendor.
+
+3.9 Payable Workflow
+Implement:
+
+Payable creation
+Payable review
+Payable approval
+Payable payment recording
+Partial payable payments
+Payable balance calculation
+Payable overdue status
+Payable dispute status
+The Accounts Payable Associate may record payable payments but may not alter the originating project costs, invoice, Certificate, or Master Sales Record.
+
+3.10 Accounting Integration Events
+Create ledger-compatible events for:
+
+Verified customer payment
+Approved customer refund
+Approved credit
+Approved invoice adjustment
+Payable creation
+Vendor payable payment
+Payment reversal
+The exact chart-of-accounts mapping remains configurable for Sprint 12.
+
+3.11 Reports
+Implement:
+
+Accounts-receivable report
+Accounts-payable report
+Payment-verification report
+Adjustment report
+Unverified-payment report
+Overpayment report
+Payables-past-due report
+Reports must respect role-based access restrictions.
+
+3.12 Dashboard and Exception Integration
+Add dashboard exceptions for:
+
+Unverified cashier’s checks
+Unverified bank wires
+Bank wires missing reference numbers or proof
+Rejected payments
+Duplicate-payment warnings
+Overpayments
+Unpaid invoices
+Partially paid invoices
+Payables pending approval
+Payables past due
+Payables missing vendors
+Refunds awaiting approval
+Credits awaiting approval
+Adjustments awaiting approval
+Projects blocked by missing verified payment
+3.13 Audit Integration
+Log:
+
+Payment creation
+Payment edits
+Payment verification
+Payment rejection
+Payment reversal
+Payment refund
+Payment allocation
+Adjustment creation
+Adjustment approval or rejection
+Payable creation
+Payable edits
+Payable approval or rejection
+Payable payment
+Payable status changes
+Financial-record exports
+Financial-record downloads
+Unauthorized access attempts
+4. Approved Sprint Decisions
+The following decisions are adopted for Sprint 09 based on the project baseline.
+
+Decision 09-01 — Initial payment methods
+The initial implementation supports only:
+
+Bank cashier’s checks
+Bank wire transfers
+Credit cards, ACH, cash, and online payment processing are deferred.
+
+Decision 09-02 — Verification is required
+A cashier’s check or bank wire is not treated as received cash until verification is complete.
+
+Unverified payments:
+
+Do not reduce accounts receivable.
+Do not satisfy the project-payment requirement.
+Do not permit project completion.
+Do not trigger earned commissions.
+Decision 09-03 — Cashier’s-check verification
+A cashier’s check requires bank confirmation before verification.
+
+The confirmation event must identify:
+
+Verifying user
+Verification date and time
+Bank-confirmation note or reference
+Supporting document, when applicable
+Decision 09-04 — Bank-wire verification
+A bank wire requires either:
+
+A manually entered wire reference number, or
+Uploaded proof of receipt
+The system must reject verification when neither item exists.
+
+Decision 09-05 — Payment allocation
+Every payment must be allocated to a specific project and invoice.
+
+The system must validate consistency among:
+
+Customer
+Project
+Project identification code
+Invoice
+Decision 09-06 — Partial payments
+Partial payments are permitted.
+
+The system must calculate remaining balance from verified transactions and approved adjustments rather than from manually edited summary values.
+
+Decision 09-07 — Overpayments
+Overpayments must be flagged for resolution.
+
+The system must not automatically treat an overpayment as:
+
+A new project payment
+A credit
+A refund
+A customer account balance
+An authorized user must document the resolution.
+
+Decision 09-08 — Adjustment approval
+The Sales Manager must approve credits, refunds, and adjustments.
+
+No adjustment may affect the amount due until the approval event is complete.
+
+Decision 09-09 — Original invoice preservation
+The original invoice amount must never be overwritten.
+
+The system must retain:
+
+Original invoice amount
+Every adjustment
+Adjusted amount due
+Reason
+Approver
+Date and time
+Related records
+Decision 09-10 — Payable trigger
+Separate payables for equipment, dealer fees, and materials are created when the Certificate is fully signed.
+
+The payable trigger date is the Certificate signing date.
+
+Decision 09-11 — Payable separation
+Equipment, dealer fees, and materials must be represented as separate payable records.
+
+They must not be combined into one payable when category-specific source amounts are available.
+
+Decision 09-12 — Payable payment permissions
+The Accounts Payable Associate may enter payable payments and update payment status but may not modify the originating project cost or invoice.
+
+Decision 09-13 — Accounting basis
+Sprint 09 supports cash-basis reporting by distinguishing:
+
+Invoice issuance
+Receivable creation
+Payment entry
+Payment verification
+Cash receipt
+Revenue-recognition event
+Final chart-of-accounts treatment remains configurable for Sprint 12.
+
+Decision 09-14 — Historical preservation
+Payments, refunds, credits, adjustments, payables, and payable payments cannot be silently deleted or overwritten.
+
+Corrections require reversal, replacement, or formal adjustment records.
+
+Decision 09-15 — Audit requirements
+All payment and payable actions must use the tamper-evident audit-log system created in Sprint 03.
+
+5. Status Definitions and Transitions
+5.1 Payment Statuses
+Permitted statuses:
+
+DRAFT
+PENDING_VERIFICATION
+VERIFIED
+PARTIALLY_ALLOCATED
+FULLY_ALLOCATED
+REJECTED
+REVERSED
+REFUNDED
+CANCELLED
+Primary flow:
+
+text
+
+
+DRAFT
+? PENDING_VERIFICATION
+? VERIFIED
+? PARTIALLY_ALLOCATED
+? FULLY_ALLOCATED
+Exception flows:
+
+text
+
+
+PENDING_VERIFICATION ? REJECTED
+VERIFIED ? REVERSED
+VERIFIED ? REFUNDED
+5.2 Receivable Statuses
+Permitted statuses:
+
+NOT_DUE
+OPEN
+PARTIALLY_PAID
+PAID
+OVERPAID
+DISPUTED
+WRITTEN_OFF
+`CANCELLED
+An invoice may be marked PAID only when verified payments cover the adjusted amount due and no unresolved payment or refund issue remains.
+
+5.3 Adjustment Statuses
+Permitted statuses:
+
+DRAFT
+PENDING_APPROVAL
+APPROVED
+`REJECTED
+REVERSED
+An approved adjustment cannot be silently edited.
+
+5.4 Payable Statuses
+Permitted statuses:
+
+DRAFT
+PENDING_APPROVAL
+`APPROVED
+PARTIALLY_PAID
+`PAID
+`OVERDUE
+DISPUTED
+CANCELLED
+6. Permission Requirements
+Sales Associate
+May:
+
+View payment status for assigned projects when operationally necessary.
+View whether a project is paid, unpaid, partially paid, or awaiting verification.
+May not:
+
+Verify payments.
+Approve credits, refunds, or adjustments.
+View unauthorized financial amounts.
+Create or approve payables.
+Record payable payments.
+Sales Manager
+May:
+
+View all payment, receivable, and payable records.
+Enter and verify payments.
+Approve credits, refunds, and adjustments.
+Approve payables.
+Review payment exceptions.
+Resolve overpayments and payment disputes.
+Comptroller
+May:
+
+View all payment, receivable, and payable records.
+Enter and verify payments.
+Review and process financial transactions.
+Review payables and payable payments.
+Resolve accounting exceptions.
+The Sales Manager approval requirement for credits, refunds, and adjustments remains mandatory unless a later approved decision supersedes it.
+
+Accounts Payable Associate
+May:
+
+View authorized vendors and payables.
+Enter payable payments.
+Update payable payment status.
+Record payment dates and methods.
+View necessary project information.
+May not:
+
+Change project pricing.
+Change approved project costs.
+Approve customer credits or refunds.
+Modify invoice terms.
+Change the Certificate or Master Sales Record.
+Installation Manager
+May view installation-related payable information when authorized.
+
+The Installation Manager may not approve customer credits, refunds, or invoice adjustments unless separately authorized by a later approved decision.
+
+Technician and Other Contractors
+May not view payment amounts, receivables, payables, refunds, or financial adjustments unless separately authorized.
+
+7. Validation Rules
+The system must prevent:
+
+Payment amounts less than or equal to zero.
+Unsupported payment methods.
+Payments linked to nonexistent projects.
+Payments linked to invoices from another project.
+Mismatched project identification codes.
+Cashier’s-check verification without bank confirmation.
+Bank-wire verification without a reference number or proof of receipt.
+Adjustments without a reason.
+Adjustments without Sales Manager approval.
+Payables without a project.
+Payables without a Certificate reference.
+Duplicate payables for the same Certificate, project, category, and source version.
+Payable payments greater than the outstanding payable balance unless formally approved.
+Financial records being deleted through the application.
+Unauthorized access to payment and payable amounts.
+Project completion based on unverified payment.
+Silent changes to historical financial records.
+8. Acceptance Criteria
+Sprint 09 is accepted when all of the following are true:
+
+A valid payment can be recorded against a specific project and invoice.
+The project identification code is validated against the project and invoice.
+Unsupported payment methods are rejected.
+Cashier’s checks require bank confirmation before verification.
+Bank wires require a wire reference number or proof of receipt before verification.
+Unverified payments do not reduce accounts receivable.
+Unverified payments do not satisfy project-completion requirements.
+Partial payments calculate the remaining balance correctly.
+Overpayments are detected and flagged.
+Original invoice amounts remain unchanged after credits, refunds, or adjustments.
+Credits, refunds, and adjustments require Sales Manager approval.
+Adjustment reasons and approval history are permanently retained.
+Refunds remain linked to the original payment or invoice.
+Certificate completion creates separate equipment, dealer-fee, and materials payables.
+Payables use the Certificate signing date as the creation trigger date.
+Repeated processing of the same Certificate does not create duplicate payables.
+Payable balances calculate correctly.
+Accounts Payable can record payment date, method, amount, and status.
+The Accounts Payable Associate cannot edit originating project costs.
+Unauthorized users cannot view restricted financial amounts.
+Payment and payable status transitions are enforced.
+Payment and payable actions are recorded in the audit log.
+Receivable and payable reports are searchable and reproducible.
+Unverified payments and overdue payables appear on the exception dashboard.
+Verified customer payments create accounting integration events.
+Vendor payments create accounting integration events.
+Payment reversals and refunds recalculate the affected receivable.
+A project cannot become complete using an unverified payment.
+Corrections preserve the original financial record.
+All automated Sprint 09 tests pass.
+9. Acceptance Test Scenarios
+Payment Tests
+Create a valid cashier’s-check payment.
+Reject a cashier’s-check payment without a check number.
+Reject cashier’s-check verification without bank confirmation.
+Create a valid bank-wire payment.
+Reject bank-wire verification without a wire reference or proof document.
+Verify a payment and confirm that accounts receivable decreases.
+Confirm that an unverified payment leaves accounts receivable unchanged.
+Record a partial payment and confirm the remaining balance.
+Record an overpayment and confirm the exception state.
+Attempt to allocate a payment to an invoice belonging to another project.
+Attempt to save a mismatched project identification code.
+Attempt to create a duplicate payment and confirm a warning or controlled rejection.
+Adjustment Tests
+Create a credit request.
+Attempt to apply a credit without Sales Manager approval.
+Approve a credit and confirm the adjusted amount due.
+Create a refund linked to an original payment.
+Confirm that the original invoice amount remains unchanged.
+Reverse an approved adjustment and confirm the historical adjustment remains visible.
+Confirm that all adjustment activity appears in the audit log.
+Payable Tests
+Fully sign a Certificate and confirm creation of separate payables.
+Confirm the equipment payable amount.
+Confirm the dealer-fee payable amount.
+Confirm the materials payable amount.
+Trigger Certificate processing a second time and confirm no duplicates are created.
+Approve a payable.
+Record a partial payable payment.
+Record the final payable payment and confirm PAID status.
+Confirm that an overdue payable appears on the exception dashboard.
+Confirm that an Accounts Payable Associate cannot edit the source project cost.
+Security and Audit Tests
+Confirm Sales Associates cannot view unauthorized payment amounts.
+Confirm Technicians cannot access payables.
+Confirm unauthorized adjustment approval is rejected.
+Confirm all access failures are logged.
+Confirm all financial changes are present in the tamper-evident audit chain.
+Confirm historical records cannot be deleted through the application.
+10. Open Questions
+The following questions remain open for implementation or later approval. None may weaken the approved baseline.
+
+Open Question 09-01 — Payment entry and verification separation
+Must payment entry and payment verification always be performed by different users?
+
+Recommended default: Enforce separation where technically practical, especially for financial control. Permit an authorized exception only with a documented reason and audit entry.
+
+Open Question 09-02 — Overpayment resolution
+Should an overpayment be resolved as:
+
+Customer credit
+Refund
+Invoice adjustment
+Manual exception
+Recommended default: Require Sales Manager approval and an explicit resolution type. Do not automatically select a resolution.
+
+Open Question 09-03 — Payable due-date calculation
+How should payable due dates be calculated?
+
+Possible options:
+
+Fixed number of days after Certificate signing
+Vendor-specific payment terms
+Manually entered due date
+Category-specific terms
+Recommended default: Use vendor payment terms when available; otherwise require an authorized user to enter or approve the due date.
+
+Open Question 09-04 — Missing vendor handling
+What should happen if the Certificate is signed but a vendor is missing?
+
+Recommended default: Create a controlled VENDOR_PENDING payable exception without permitting payment until the vendor is identified.
+
+Open Question 09-05 — Refund payment method
+Should refunds be required to use the original payment method?
+
+Recommended default: Require the refund method to be recorded and require Sales Manager approval when the method differs from the original payment method.
+
+Open Question 09-06 — Payment evidence file types
+Which file types should be accepted for proof of receipt?
+
+Recommended default: PDF, PNG, and JPEG, subject to the system’s standard file-size and malware-scanning controls.
+
+Open Question 09-07 — Payable overpayment
+How should an overpayment to a vendor be handled?
+
+Recommended default: Flag it as an exception and prohibit automatic closure of the payable until corrected or approved.
+
+Open Question 09-08 — Receivable aging intervals
+Which aging intervals should be used in reports?
+
+Recommended default: Current, 1–30 days, 31–60 days, 61–90 days, and over 90 days.
+
+Open Question 09-09 — Write-offs
+Should write-offs be included in Sprint 09?
+
+Recommended default: Defer write-offs until a formal accounting-policy decision is approved. The data model may reserve a WRITTEN_OFF status without enabling the workflow.
+
+Open Question 09-10 — Accounting event timing
+Should the ledger event be created when a payment is verified or when the payment is fully allocated?
+
+Recommended default: Create the cash-receipt event upon verification because the payment is then recognized as received. Allocation validation must still be complete before verification.
+
+11. Sprint 09 Completion Definition
+Sprint 09 is complete when:
+
+Payment, verification, receivable, adjustment, payable, and payable-payment workflows operate end to end.
+Cashier’s checks and bank wires follow their required verification rules.
+Payment status controls project completion correctly.
+Separate payables are generated from signed Certificates.
+Permissions prevent unauthorized financial access and changes.
+Adjustments and refunds preserve historical records.
+Reports reconcile to underlying transaction records.
+Dashboard exceptions are visible to authorized users.
+Accounting integration events are generated.
+Audit records are append-only and tamper-evident.
+Acceptance tests pass.
+Open questions are either resolved or formally carried forward.
+This bundle is approved and preserved unchanged.
+12. Next Markdown Bundle
+The next bundle is:
+
+text
+
+
+GECC-10-costs-and-commissions.md
+Its objective is to implement:
+
+Equipment costs
+Material costs
+Dealer fees
+Lead costs
+Technician costs
+Damon costs
+Jerry costs
+Gross Profit
+Ryan variable commission
+Doug variable commission
+Net Profit
+Sales Associate and GECC profit split
+Fixed compensation
+Commission eligibility
+Biweekly contractor commission reports
+Annual contractor summaries
+Commission adjustments
+Payroll-period corrections
+Commission permissions
+Commission approval workflow
+Integration with completed projects and verified payments
+The Sprint 10 bundle must use the verified payment and project-completion statuses established in this Sprint 09 bundle.
+======= END FILE: GECC-09-Payments-And-Payables.md =======
+=== BEGIN FILE: GECC-10-Costs-And-Commissions.md ===
+Bundle name: `GECC-10-costs-and-commissions.md
+Project: GECC Sales Back Office System
+Company: Go Ecco Climate Control
+Sprint: 10
+Sprint name: Costs, Profitability, Commissions, and Contractor Reports
+Baseline: GECC-00-project-baseline.md
+Previous bundle: `GECC-09-payments-and-payables.md
+Status: Implementation bundle
+Date: 2026-09-20
+Next planned bundle: GECC-11-inventory-assets-and-loans.md
+Primary database: Relational database
+System of record: GECC database
+Google Sheets: Export or reporting destination only
+1. Sprint Objective
+Implement project-cost tracking, gross-profit calculations, net-profit calculations, fixed compensation, variable commissions, commission eligibility, commission approvals, biweekly contractor reports, annual contractor summaries, and commission adjustments.
+
+Sprint 10 must ensure that:
+
+Project profitability is calculated from controlled cost records.
+Approved costs and corrected costs remain historically traceable.
+Commissions are not earned before project completion.
+Commissions are not paid on zero-profit or negative-profit projects.
+Fixed compensation is calculated according to approved project rules.
+Variable commissions use the approved Gross Profit and Net Profit formulas.
+Commission reports are generated only for eligible completed projects.
+Contractor reports contain only information authorized for the applicable contractor.
+Post-payroll corrections are handled through adjustments rather than silent overwrites.
+2. Sprint Scope
+2.1 Included
+Project-cost records
+Equipment costs
+Material costs
+Dealer fees
+Lead costs
+Technician costs
+Damon costs
+Jerry costs
+Gross Profit
+Ryan variable commission
+Doug variable commission
+Net Profit
+Sales Associate and GECC profit split
+Fixed compensation
+Commission eligibility
+Biweekly commission periods
+Commission report generation
+Commission report approval
+Contractor report distribution
+Annual commission summaries
+Commission corrections
+Post-payroll adjustments
+Cost and commission permissions
+Cost and commission audit logging
+Profitability dashboard indicators
+Project and customer profitability outputs
+2.2 Excluded
+Inventory valuation and FIFO implementation
+Fixed-asset depreciation
+Loan accounting
+Full payroll processing
+Contractor tax calculations
+Bank-statement import
+Automatic payment processing
+Final financial-statement publication
+Vendor payment processing, except integration with Sprint 09
+General ledger account configuration, except required integration events
+3. Source Records and Dependencies
+Sprint 10 depends on:
+
+Approved Master Sales Record versions
+Approved retail price
+Approved project scope
+Equipment records
+Material records
+Dealer-fee records
+Technician cost records
+Lead, Damon, and Jerry cost records
+Verified customer payments
+Approved credits, refunds, and adjustments
+Project completion status
+Contractor records
+User and role permissions
+Tamper-evident audit logging
+Approved electronic-signature status
+Sprint 09 accounts-receivable and payment status
+A commission must not be calculated as earned from an unapproved or superseded project version.
+
+4. Approved Cost Categories
+The system must support the following initial project-cost categories:
+
+Equipment Cost
+Material Cost
+Dealer Fee
+Lead Cost
+Technician Cost
+Damon Cost
+Jerry Cost
+Each cost record must identify:
+
+Cost ID
+Project ID
+Master Sales Record version
+Cost category
+Description
+Amount
+Vendor or contractor, if applicable
+Source record
+Cost status
+Entered by
+Entry date and time
+Approved by, if approval is required
+Approval date and time
+Effective date
+Revision reference
+Correction or adjustment reference
+Notes
+Amounts must be stored using fixed-precision numeric fields. Floating-point values must not be used for financial calculations.
+
+5. Cost Permissions
+5.1 Equipment, Material, and Dealer-Fee Costs
+The following roles may enter or revise permitted cost records:
+
+Sales Manager
+Installation Manager
+Comptroller
+5.2 Technician Cost
+Technician Cost is a variable actual project cost.
+
+It may be entered or revised by:
+
+Sales Manager
+Installation Manager
+Comptroller
+The system must retain the user, date, reason, and source for each Technician Cost change.
+
+5.3 Lead, Damon, and Jerry Costs
+Lead Cost, Damon Cost, and Jerry Cost may be edited for an individual project by authorized users.
+
+The initial default values are:
+
+Lead: $3,000
+Damon: $500
+Jerry: $250
+Changing a cost for one project must not automatically change:
+
+Past projects
+Future projects
+Other projects
+The global default
+Any future change to a global default requires separate administrative configuration and must not rewrite historical project costs.
+
+5.4 Sales Associate
+A Sales Associate may view limited profitability or commission information only when authorized by the applicable permission policy.
+
+A Sales Associate may view:
+
+Commission information related to their own completed sales
+Their own approved commission reports
+A Sales Associate may not:
+
+Change approved costs
+Change commission calculations
+Approve commission changes
+Approve commission reports
+View another Sales Associate’s commission information
+5.5 Commission Approvers
+The Sales Manager and Comptroller may:
+
+Review commission calculations
+Approve commission reports
+Review commission corrections
+Approve commission adjustments according to the approved workflow
+Only the Sales Manager may approve:
+
+Early commission payment
+Commission changes
+Commission changes caused by corrected project costs
+Commission adjustments after payroll approval
+6. Profitability Calculations
+6.1 Gross Profit
+The system must calculate:
+
+text
+
+
+Gross Profit =
+Invoice Amount
+- Equipment Cost
+- Material Cost
+- Dealer Fee
+- Lead Cost
+- Technician Cost
+- Damon Cost
+- Jerry Cost
+The invoice amount must be the applicable approved invoice amount after authorized pricing changes and before subtracting project costs.
+
+Approved credits, refunds, and adjustments must be handled according to the accounting and profitability treatment approved for the relevant project version. The implementation must not silently substitute a different amount.
+
+6.2 Variable Commissions
+Ryan’s commission:
+
+text
+
+
+Ryan Commission = 15%
+Doug’s commission:
+
+text
+
+
+Doug Commission = 5% × Gross Profit
+The system must store the commission rate used for each calculation so that a future rate change does not alter historical calculations.
+
+If Gross Profit is zero or negative:
+
+No variable commission is paid.
+Negative profitability remains visible.
+The zero or negative calculation is retained in the commission record.
+6.3 Net Profit
+The system must calculate:
+
+text
+
+
+Net Profit =
+Gross Profit
+-?
+If Net Profit is zero or negative:
+
+No variable commission is paid.
+Negative profitability remains visible.
+The negative result is preserved in reports.
+6.4 Profit Split
+Net Profit is split:
+
+50% to the Sales Associate who created and owns the Master Sales Record
+50% to GECC
+The system must identify the Sales Associate from the project ownership record, not from a manually entered report value.
+
+If the Sales Associate assignment changes after approval, the change must follow the controlled revision process and must not silently change an already approved commission report.
+
+6.5 Fixed Compensation
+Fixed compensation is paid once per completed project to:
+
+Lead
+Damon
+Jerry
+The initial fixed amounts are:
+
+Lead: $3,000
+Damon: $500
+Jerry: $250
+These amounts are project-level deductions and compensation values. They are not dependent on whether Damon or Jerry actively participated in the project, unless a later approved decision supersedes the baseline.
+
+Fixed compensation becomes earned only after project completion.
+
+7. Commission Eligibility
+A project is commission-eligible only when all of the following conditions are true:
+
+Required scope of work is complete.
+Contract has all required signatures.
+Invoice has all required signatures.
+Certificate has all required signatures.
+Invoice is fully paid after approved adjustments.
+Payment verification is complete.
+Project status is COMPLETE.
+No unresolved payment reversal, refund, or completion-blocking exception exists.
+A project that is merely invoiced, signed, installed, or partially paid is not commission-eligible.
+
+7.1 Commission Eligibility Event
+When the final eligibility condition is met, the system must:
+
+Create a commission-eligibility record.
+Record the eligibility date and time.
+Identify the applicable project and Master Sales Record version.
+Capture the approved financial inputs.
+Calculate fixed compensation.
+Calculate variable commissions.
+Calculate Net Profit.
+Assign the project to the applicable biweekly commission period.
+Create a commission-report task.
+Record the event in the audit log.
+7.2 Eligibility Reversal
+If a project later becomes financially incomplete because of:
+
+Payment reversal
+Refund
+Approved adjustment
+Corrected cost
+Reopened project
+Invalid completion status
+the system must not delete the original eligibility record.
+
+Instead, it must create:
+
+Eligibility-reversal record
+Reason
+Date and time
+Approver, when required
+Related payment, cost, or adjustment record
+Required commission correction task
+8. Commission Data Model
+8.1 Commission Record
+Required fields:
+
+Commission ID
+Project ID
+Customer ID
+Project identification code
+Master Sales Record version
+Sales Associate ID
+Contractor ID
+Commission type
+Commission rate
+Commission basis
+Gross Profit
+Net Profit
+Fixed compensation amount
+Variable commission amount
+Sales Associate share
+GECC share
+Eligibility status
+Approval status
+Payroll status
+Report ID
+Pay-period ID
+Created date and time
+Approved date and time
+Paid date, if applicable
+Correction reference
+Adjustment reference
+Notes
+8.2 Commission Types
+Initial permitted values:
+
+FIXED_LEAD
+FIXED_DAMON
+FIXED_JERRY
+VARIABLE_RYAN
+VARIABLE_DOUG
+SALES_ASSOCIATE_PROFIT_SHARE
+GECC_PROFIT_SHARE
+COMMISSION_ADJUSTMENT
+8.3 Commission Statuses
+Permitted statuses:
+
+NOT_ELIGIBLE
+ELIGIBLE
+`CALCULATED
+PENDING_APPROVAL
+APPROVED
+`REPORTED
+PAID
+CORRECTION_PENDING
+ADJUSTED
+VOIDED
+A commission record must not be marked PAID unless the applicable commission report has been approved.
+
+9. Commission Calculation Rules
+9.1 Calculation Snapshot
+When commissions are calculated, the system must store a calculation snapshot containing:
+
+Invoice amount used
+Approved cost values used
+Gross Profit
+Ryan rate and amount
+Doug rate and amount
+Net Profit
+Fixed compensation amounts
+Sales Associate identity
+Profit-share amounts
+Master Sales Record version
+Calculation date and time
+Calculation engine or rule-set version
+Future configuration changes must not recalculate historical reports automatically.
+
+9.2 Rounding
+The system must use a consistent financial rounding rule.
+
+Recommended default:
+
+Calculate using full stored precision.
+Round display and payable amounts to two decimal places.
+Apply final rounding at the individual commission-line level.
+Ensure the report total equals the sum of its displayed line items.
+The selected rule must be documented in the Sprint 10 configuration record.
+
+9.3 Negative Profitability
+Negative Gross Profit and Net Profit must be preserved.
+
+The system must:
+
+Display negative values to authorized users.
+Flag negative-profit projects.
+Suppress variable commissions when Gross Profit is zero or negative.
+Suppress variable commissions when Net Profit is zero or negative.
+Preserve fixed compensation according to the baseline unless a later approved decision changes that rule.
+9.4 Missing Costs
+A project must not receive a final commission calculation if required cost information is missing.
+
+The system must create a cost-completeness exception identifying:
+
+Missing cost category
+Project
+Responsible role
+Date detected
+Required action
+A Sales Manager, Installation Manager, or Comptroller must resolve the missing cost before final commission approval.
+
+10. Biweekly Commission Reports
+10.1 Reporting Period
+Contractor commission reports are created every two weeks.
+
+Each report must identify:
+
+Report ID
+Contractor
+Pay-period start date
+Pay-period end date
+Report date
+Included projects
+Included commission records
+Total fixed compensation
+Total variable compensation
+Total adjustments
+Net amount reported
+Review status
+Approval status
+Distribution status
+Retention reference
+10.2 Project Inclusion
+A completed project is included in the applicable report when its commission eligibility event falls within the pay period.
+
+A project must not be included solely because:
+
+It was sold during the period.
+It was installed during the period.
+Its invoice was issued during the period.
+Its contract was signed during the period.
+10.3 Report Review and Approval
+The Sales Manager and Comptroller review commission reports according to the approved workflow.
+
+The implementation must preserve whether:
+
+Sales Manager reviewed
+Comptroller reviewed
+Sales Manager approved
+Comptroller approved
+Report was rejected
+Rejection reason was provided
+The baseline requires Sales Manager and Comptroller review and approval. Both approval events must be retained even if the workflow later permits one authorized final approval for a specific report type.
+
+10.4 Report Distribution
+Approved reports must be:
+
+Sent by email to applicable contractors.
+Permanently retained.
+Linked to the relevant projects.
+Linked to the relevant commission records.
+Linked to the applicable pay period.
+Email delivery status must be retained.
+
+11. Annual Contractor Summaries
+Every January 5, the system must create an annual summary for each contractor who was employed during the prior year.
+
+Each summary must include:
+
+Contractor identity
+Summary year
+Total commission amount
+Commission payment dates
+Commission amounts
+Individual biweekly report references
+Distribution status
+Delivery date and time
+Retention reference
+Annual summaries must not expose another contractor’s information.
+
+If January 5 falls on a non-business day, the implementation must use the configured delivery policy while retaining January 5 as the reporting trigger date.
+
+12. Commission Adjustments
+12.1 Adjustment Triggers
+A commission adjustment may be required because of:
+
+Corrected project cost
+Payment reversal
+Approved refund
+Approved invoice adjustment
+Incorrect commission calculation
+Incorrect contractor assignment
+Incorrect project ownership
+Commission report correction
+Post-approval accounting correction
+12.2 Required Adjustment Fields
+Adjustment ID
+Original commission ID
+Project ID
+Contractor ID
+Original report ID
+Original pay period
+Adjustment amount
+Adjustment type
+Reason
+Source correction
+Requested by
+Requested date and time
+Approval status
+Approved by
+Approval date and time
+Replacement report or future-period reference
+Notes
+12.3 Post-Payroll Corrections
+If a project cost is corrected after payroll approval:
+
+Preserve the original commission report.
+Create a commission adjustment.
+Include the adjustment in the next payroll period.
+Add an adjustment note.
+Link the adjustment to the original project.
+Link the adjustment to the original payroll period.
+Require Sales Manager approval.
+Preserve the original calculation snapshot.
+The original approved report must never be silently rewritten.
+
+12.4 Early Commission Payment
+Early commission payment requires:
+
+Sales Manager approval
+Reason
+Project reference
+Amount
+Date
+Audit record
+Early payment must not remove the project from the normal commission-report history.
+
+13. Reporting Requirements
+13.1 Project Profitability Report
+The report must include:
+
+Project identification code
+Customer
+Project location
+Sales Associate
+Invoice amount
+Each cost category
+Gross Profit
+Ryan commission
+Doug commission
+Net Profit
+Sales Associate share
+GECC share
+Commission status
+Payment status
+Project completion status
+13.2 Customer Profitability Report
+The report must aggregate authorized project records by customer and include:
+
+Customer
+Project count
+Total invoice amount
+Total costs
+Total Gross Profit
+Total Net Profit
+Total commissions
+Total adjustments
+Total verified payments
+13.3 Contractor Commission Report
+Each contractor must receive only authorized information.
+
+The report must include:
+
+Contractor identity
+Pay period
+Eligible projects
+Commission type
+Commission amount
+Approved adjustments
+Total amount reported
+Approval status
+13.4 Negative-Profit Report
+The report must identify:
+
+Project
+Customer
+Sales Associate
+Invoice amount
+Cost categories
+Gross Profit
+Net Profit
+Variable commission status
+Required action
+13.5 Commission Adjustment Report
+The report must identify:
+
+Original commission report
+Original project
+Original amount
+Corrected amount
+Adjustment amount
+Reason
+Approver
+New reporting period
+Adjustment status
+14. Dashboard Requirements
+Sprint 10 must add or populate the following dashboard indicators:
+
+Projects missing required costs
+Projects awaiting profitability calculation
+Projects with zero Gross Profit
+Projects with negative Gross Profit
+Projects with zero or negative Net Profit
+Projects eligible for commission
+Projects awaiting commission approval
+Commission reports awaiting review
+Commission reports awaiting approval
+Commission reports rejected
+Commission adjustments pending approval
+Post-payroll corrections
+Annual summaries awaiting delivery
+Failed commission-report emails
+Financial amounts and contractor compensation must remain hidden from unauthorized users.
+
+15. Audit Requirements
+The system must log:
+
+Cost creation
+Cost edits
+Cost approvals
+Cost reversals
+Default-cost changes
+Profitability calculations
+Commission-calculation events
+Commission-rate changes
+Eligibility creation
+Eligibility reversal
+Commission report creation
+Commission report review
+Commission report approval
+Commission report rejection
+Commission report distribution
+Email delivery failure
+Annual-summary creation
+Annual-summary distribution
+Commission adjustments
+Early commission approvals
+Unauthorized access attempts
+Commission exports, downloads, and prints
+Every event must retain the standard audit fields:
+
+User identity
+User role
+Date and time
+Activity type
+Related record identifier
+Success or failure
+Session identifier
+Reason when required
+Previous audit-log entry reference
+Integrity hash or equivalent value
+16. Sprint 10 Decisions
+Decision 10-01 — Cost categories
+The initial implementation uses seven project-cost categories:
+
+Equipment
+Materials
+Dealer Fee
+Lead
+Technician
+Damon
+Jerry
+Decision 10-02 — Default fixed deductions
+Initial project defaults are:
+
+Lead: $3,000
+Damon: $500
+Jerry: $250
+Defaults are copied into the project cost record when the project reaches the applicable workflow stage. Later default changes do not alter existing projects.
+
+Decision 10-03 — Fixed compensation eligibility
+Lead, Damon, and Jerry fixed compensation becomes earned only after project completion.
+
+Decision 10-04 — Variable commission rates
+Initial variable commission rates are:
+
+Ryan: 15% of Gross Profit
+Doug: 5% of Gross Profit
+The rate used must be stored in each commission calculation snapshot.
+
+Decision 10-05 — Zero and negative profitability
+No variable commission is paid when:
+
+Gross Profit is zero or negative, or
+Net Profit is zero or negative
+Negative profitability remains visible in reports.
+
+Decision 10-06 — Net-profit split
+Net Profit is split:
+
+50% to the Sales Associate who created and owns the Master Sales Record
+50% to GECC
+Decision 10-07 — Commission eligibility
+Commissions are earned only after:
+
+Scope completion
+Full Certificate signature
+Full invoice signature
+Full payment after approved adjustments
+Verified payment
+Project completion
+Decision 10-08 — Commission report frequency
+Contractor commission reports are created every two weeks.
+
+Decision 10-09 — Report retention
+Approved commission reports are retained permanently and linked to:
+
+Contractor
+Projects
+Commission records
+Pay period
+Distribution events
+Decision 10-10 — Annual summary date
+Annual contractor summaries are generated every January 5 for contractors employed during the prior year.
+
+Decision 10-11 — Post-payroll corrections
+Cost corrections after payroll approval are handled through an adjustment in the next payroll period.
+
+The original report remains unchanged.
+
+Decision 10-12 — Commission approval authority
+Only the Sales Manager may approve:
+
+Early commission payment
+Commission changes
+Cost-correction commission changes
+Commission adjustments after payroll approval
+Decision 10-13 — Contractor data isolation
+Each contractor receives only their own authorized commission information.
+
+Sales Associates see only commission information related to their own sales.
+
+Decision 10-14 — Historical calculation preservation
+Historical commission calculations retain their original:
+
+Inputs
+Rates
+Costs
+Profitability values
+Ownership
+Project version
+Calculation rule version
+Decision 10-15 — Financial calculation precision
+Financial calculations use fixed-precision numeric storage and a single documented rounding policy.
+
+17. Open Questions
+Open Question 10-01 — Definition of project invoice amount
+Should Gross Profit use:
+
+Original invoice amount, or
+Adjusted invoice amount after approved credits, refunds, and adjustments?
+Recommended default: Use the approved adjusted economic amount for the applicable completed project version, while retaining the original invoice amount separately. The final accounting treatment must be confirmed before production release.
+
+Open Question 10-02 — Fixed compensation and negative profitability
+Should Lead, Damon, and Jerry fixed compensation be paid when a project has zero or negative profitability?
+
+Recommended default: Yes, because the baseline defines fixed compensation separately from variable commissions. This must be explicitly confirmed before payroll implementation.
+
+Open Question 10-03 — Ryan and Doug identities
+Are Ryan and Doug fixed contractor identities, or configurable contractor roles that may be reassigned?
+
+Recommended default: Store them as configurable contractor records with a stable commission-role assignment. Historical records must retain the contractor identity used at calculation time.
+
+Open Question 10-04 — Sales Associate reassignment
+Who owns commissions when a project is reassigned before completion?
+
+Recommended default: The current approved Master Sales Record owner at the time of commission eligibility receives the Sales Associate allocation. Any reassignment after approval requires a documented revision and approval.
+
+Open Question 10-05 — Commission report approval threshold
+Must both the Sales Manager and Comptroller approve every commission report, or may one authorized approver finalize a report?
+
+Recommended default: Require review and approval by both roles because the baseline states that both review and approve commission reports.
+
+Open Question 10-06 — Pay-period boundaries
+Should commission periods be based on:
+
+Fixed calendar periods, such as days 1–14 and 15–end of month
+Rolling fourteen-day periods
+A configurable biweekly calendar
+Recommended default: Use configurable fixed fourteen-day periods with a defined first period and permanent period history.
+
+Open Question 10-07 — Rounding method
+Should rounding occur:
+
+Per commission line
+Per project
+Per contractor report
+At all three levels with reconciliation
+Recommended default: Calculate at full precision, round individual payable lines to two decimals, and reconcile report totals to displayed lines.
+
+Open Question 10-08 — Cost completeness
+Which cost categories are mandatory before commission calculation?
+
+Recommended default: All seven baseline cost categories must have a value, including zero where legitimately applicable. Missing values must not be treated as zero without an authorized explanation.
+
+Open Question 10-09 — Commission treatment after refunds
+If a refund occurs after commission payment, should the full resulting adjustment be charged to the next contractor report?
+
+Recommended default: Calculate the correction from the affected project and apply it to the next report, subject to Sales Manager approval and applicable legal/accounting review.
+
+Open Question 10-10 — Contractor report delivery failure
+What is the required response when an approved report cannot be emailed?
+
+Recommended default: Preserve the approved report, create a delivery exception, notify the Sales Manager and Comptroller, and permit authorized manual delivery.
+
+Open Question 10-11 — Annual report delivery date
+If January 5 is a weekend or holiday, should the report be sent:
+
+On January 5
+On the preceding business day
+On the next business day
+Recommended default: Create the annual report on January 5 and deliver on the next configured business day if the delivery service is unavailable.
+
+Open Question 10-12 — Profitability treatment of payment adjustments
+Should profitability be recalculated when a payment is refunded or an invoice is adjusted after project completion?
+
+Recommended default: Preserve the original completed-project calculation and create a separate adjustment calculation linked to the original report.
+
+18. Acceptance Criteria
+Sprint 10 is accepted when:
+
+All seven approved cost categories can be recorded.
+Cost records are linked to the correct project and Master Sales Record version.
+Unauthorized users cannot edit approved costs.
+Default Lead, Damon, and Jerry costs are applied correctly.
+A project-specific cost change does not alter other projects.
+Gross Profit is calculated using the approved formula.
+Ryan’s commission is calculated at 15% of eligible Gross Profit.
+Doug’s commission is calculated at 5% of eligible Gross Profit.
+Variable commissions are zero when Gross Profit is zero or negative.
+Variable commissions are zero when Net Profit is zero or negative.
+Negative Gross Profit and Net Profit remain visible in authorized reports.
+Net Profit is split 50% to the Sales Associate and 50% to GECC.
+Fixed compensation is calculated once per completed project.
+Fixed compensation is not calculated before project completion.
+A project cannot become commission-eligible before all required signatures and verified payment conditions are complete.
+A project cannot be included in a commission report solely because it was sold or installed.
+Each commission calculation stores its calculation inputs and rates.
+Historical calculations do not change when current rates or defaults change.
+Missing required costs create a blocking exception.
+Biweekly commission reports include only eligible projects in the applicable pay period.
+Sales Managers and Comptrollers can review commission reports.
+Commission reports require the configured approval workflow.
+Approved commission reports are permanently retained.
+Reports are linked to the applicable projects, contractors, and commission records.
+Contractors receive only their authorized commission information.
+Sales Associates see only commission information related to their own sales.
+Annual summaries include the required prior-year commission information.
+Post-payroll cost corrections create adjustments in the next payroll period.
+Original commission reports remain unchanged after corrections.
+Only the Sales Manager can approve post-payroll commission adjustments.
+Negative-profit projects appear on the appropriate dashboard or exception report.
+All cost and commission actions are recorded in the tamper-evident audit log.
+Project and customer profitability reports reconcile to underlying records.
+Automated Sprint 10 tests pass.
+19. Automated Test Scenarios
+Cost Tests
+Create all seven cost categories for a project.
+Confirm unauthorized users cannot edit approved costs.
+Change a cost for one project and confirm other projects are unchanged.
+Change a default cost and confirm historical projects are unchanged.
+Attempt to calculate commission with a missing required cost.
+Confirm the missing-cost exception identifies the responsible role.
+Profitability Tests
+Calculate Gross Profit using positive costs.
+Calculate Gross Profit when one cost is zero.
+Calculate Gross Profit when total costs exceed the invoice amount.
+Confirm negative Gross Profit is retained.
+Calculate Ryan’s commission at 15%.
+Calculate Doug’s commission at 5%.
+Confirm no variable commission is paid for zero Gross Profit.
+Confirm no variable commission is paid for negative Gross Profit.
+Confirm Net Profit calculation.
+Confirm the 50/50 Sales Associate and GECC split.
+Eligibility Tests
+Attempt to create a commission before contract signature.
+Attempt to create a commission before Certificate signature.
+Attempt to create a commission before invoice signature.
+Attempt to create a commission before payment verification.
+Attempt to create a commission for a partially paid project.
+Complete all requirements and confirm commission eligibility.
+Reverse a payment after eligibility and confirm an adjustment task is created.
+Report Tests
+Create a biweekly period.
+Include an eligible project in the correct period.
+Exclude an ineligible project.
+Confirm a project is not duplicated in two reports.
+Generate contractor-specific reports.
+Confirm one contractor cannot view another contractor’s report.
+Approve a report and confirm permanent retention.
+Reject a report and require a rejection reason.
+Generate an annual contractor summary.
+Adjustment Tests
+Correct a project cost before payroll approval.
+Correct a project cost after payroll approval.
+Confirm the original commission report remains unchanged.
+Confirm an adjustment appears in the next payroll period.
+Require Sales Manager approval for the adjustment.
+Confirm the adjustment links to the original project and payroll period.
+Security and Audit Tests
+Confirm Sales Associates cannot view other Sales Associates’ commissions.
+Confirm Technicians cannot view commission reports.
+Confirm unauthorized users cannot export financial data.
+Confirm rate changes are audited.
+Confirm commission calculation events are audited.
+Verify the audit chain after commission corrections.
+Confirm financial records cannot be silently deleted.
+20. Sprint 10 Completion Definition
+Sprint 10 is complete when:
+
+Cost records are controlled and versioned.
+Project profitability calculations are reproducible.
+Fixed and variable commissions use approved rules.
+Commission eligibility is tied to completed projects and verified payment.
+Biweekly reports are generated, reviewed, approved, distributed, and retained.
+Annual contractor summaries are generated.
+Post-payroll corrections use formal adjustments.
+Role-based commission visibility is enforced.
+Dashboard exceptions are operational.
+Audit records are complete and tamper-evident.
+Acceptance tests pass.
+Open questions are resolved or formally carried forward.
+The Sprint 10 bundle is approved and preserved unchanged.
+21. Next Markdown Bundle
+The next bundle is:
+
+text
+
+
+GECC-11-inventory-assets-and-loans.md
+Its objective is to implement:
+
+FIFO inventory
+Serial-number tracking
+Equipment acquisition
+Equipment allocation to projects
+Inventory cost layers
+Inventory status transitions
+Inventory adjustments
+Vehicles
+Computers
+Offices
+Additional fixed-asset categories
+Straight-line depreciation
+Placed-in-service dates
+Accumulated depreciation
+Net book value
+Asset disposal
+Loans
+Principal balances
+Interest tracking
+Loan payments
+Inventory, fixed-asset, depreciation, and loan reports
+Asset and inventory permissions
+Audit integration
+Accounting integration with the internal ledger
+Sprint 11 must preserve the cost and commission calculation snapshots created in Sprint 10 and must not silently recalculate historical profitability when inventory or asset values are later corrected.
+======= END FILE: GECC-10-Costs-And-Commissions.md =======
+=== BEGIN FILE: GECC-11-Inventory-Assets-And-Loans.md ===
+GECC-11-inventory-assets-and-loans.md
+GECC Sales Back Office System — Sprint 11
+Bundle Metadata
+Bundle name: `GECC-11-inventory-assets-and-loans.md
+Project: GECC Sales Back Office System
+Company: Go Ecco Climate Control
+Sprint: 11
+Sprint name: Inventory, Assets, Loans, and Depreciation
+Baseline: GECC-00-project-baseline.md
+Previous bundle: GECC-10-costs-and-commissions.md
+Status: Implementation bundle
+Date: 2026-09-20
+Next planned bundle: GECC-12-financial-reporting.md
+Primary database: Relational database
+System of record: GECC database
+Google Sheets: Export or reporting destination only
+1. Sprint Objective
+Implement inventory tracking, serial-number tracking, FIFO cost layers, fixed-asset records, straight-line depreciation, loans, and related accounting integration.
+
+Sprint 11 must ensure that:
+
+Inventory is tracked by product identity and cost layer.
+Serialized equipment remains individually identifiable.
+Inventory issued to projects is traceable to the project and source cost layer.
+Equipment costs used in profitability calculations are reproducible.
+Fixed assets are recorded by category and identification details.
+Depreciation uses the straight-line method.
+Depreciation begins on the placed-in-service date.
+Loans track principal, interest, payments, and outstanding balances.
+Inventory, asset, depreciation, and loan records are auditable.
+Historical project profitability is not silently recalculated after later corrections.
+2. Sprint Scope
+2.1 Included
+Inventory master records
+Product identity records
+Serialized equipment
+Nonserialized materials
+Inventory receipts
+Inventory cost layers
+FIFO issuance
+Inventory reservations
+Project allocation
+Inventory returns
+Inventory adjustments
+Fixed-asset records
+Vehicles
+Computers
+Offices
+Additional asset categories
+Asset acquisition
+Asset placement in service
+Straight-line depreciation
+Accumulated depreciation
+Net book value
+Asset disposal
+Loan records
+Loan payment records
+Principal and interest tracking
+Inventory reports
+Fixed-asset reports
+Depreciation reports
+Loan reports
+Permissions
+Audit logging
+Accounting integration events
+2.2 Excluded
+Automatic vendor purchase-order integration
+Automatic bank-statement import
+Automatic bank reconciliation
+Automatic loan-servicer integration
+Accelerated depreciation
+Declining-balance depreciation
+Section 179 or tax depreciation calculations
+Tax-return preparation
+Asset maintenance scheduling
+Fleet GPS tracking
+Technician time tracking
+Full procurement management
+3. Source Records and Dependencies
+Sprint 11 depends on:
+
+Sprint 01 relational database and accounting foundation
+Sprint 03 tamper-evident audit logging
+Sprint 04 customer, project, and location records
+Sprint 05 Master Sales Record and equipment records
+Sprint 06 controlled workflow
+Sprint 09 payment and payable records
+Sprint 10 project-cost and profitability records
+Sprint 11 must integrate with:
+
+Equipment records
+Project records
+Vendor records
+Accounts payable
+Project-cost records
+General-ledger integration events
+Financial reporting periods
+Audit records
+4. Inventory Data Model
+4.1 Product Identity
+A product identity represents a product type or model.
+
+Required fields:
+
+Product identity ID
+Brand
+Model
+Function
+Product type
+Description
+Unit of measure
+Serialized indicator
+Active or inactive status
+Default vendor, if applicable
+Creation date
+Last modified date
+Examples of product types include:
+
+Condenser coil
+Evaporator coil
+Refrigerant
+Air handler
+Furnace
+Thermostat
+Air ducts
+Vents
+4.2 Inventory Item
+An inventory item represents an individually received or tracked unit.
+
+Required fields:
+
+Inventory item ID
+Product identity ID
+Serial number, when applicable
+Brand
+Model
+Function
+Product type
+Acquisition date
+Acquisition cost
+Vendor
+Source payable
+Cost-layer ID
+Inventory status
+Project allocation
+Date received
+Date issued
+Date returned, if applicable
+Notes
+Created by
+Created date and time
+Last modified date and time
+4.3 Serialized Inventory
+Serialized products must retain individual records.
+
+The system must prevent:
+
+Duplicate serial numbers for the same product identity
+Issuing the same serial-numbered item to two projects
+Changing a serial number without a controlled correction
+Deleting a serialized item with historical activity
+Reusing a retired or disposed serial number
+A serial-number correction must preserve:
+
+Original serial number
+Corrected serial number
+Reason
+User
+Date and time
+Approval, when required
+Related project and document references
+4.4 Nonserialized Inventory
+Nonserialized materials may be tracked by:
+
+Product identity
+Quantity
+Unit of measure
+Acquisition cost
+Cost layer
+Vendor
+Project allocation
+The system must retain transaction-level quantity changes and must not rely solely on a manually edited balance.
+
+5. Inventory Statuses
+Permitted inventory statuses:
+
+ORDERED
+RECEIVED
+AVAILABLE
+RESERVED
+ISSUED
+INSTALLED
+`RETURNED
+`DAMAGED
+SCRAPPED
+ADJUSTED
+`TRANSFERRED
+CANCELLED
+5.1 Status Rules
+ORDERED items are not available for project allocation.
+RECEIVED items have arrived but may require receiving review.
+AVAILABLE items may be reserved or issued.
+RESERVED items are assigned to a project but have not been issued.
+ISSUED items are allocated to a project and included in project cost.
+INSTALLED items are confirmed as used in the completed scope.
+RETURNED items are removed from project allocation and require condition assessment.
+DAMAGED items may not be issued without authorized override.
+SCRAPPED items may not be returned to available inventory.
+CANCELLED items are retained historically but excluded from available quantities.
+6. Inventory Receiving
+When inventory is received, the authorized user must record:
+
+Vendor
+Receipt date
+Product identity
+Quantity
+Unit cost
+Total cost
+Serial numbers, when applicable
+Related payable or vendor document
+Receiving notes
+The system must:
+
+Validate the vendor.
+Validate product identity.
+Validate quantity and cost.
+Create or update the applicable inventory records.
+Create a FIFO cost layer.
+Link the inventory receipt to the payable, when available.
+Record the receiving event in the audit log.
+Inventory may be received before the related payable is paid.
+
+7. FIFO Cost Layers
+7.1 Cost-Layer Requirements
+Each inventory receipt creates a cost layer containing:
+
+Cost-layer ID
+Product identity ID
+Receipt date
+Quantity received
+Quantity remaining
+Unit cost
+Total layer cost
+Vendor
+Source payable
+Source receipt
+Status
+7.2 FIFO Issuance
+When inventory is issued, the system must consume the oldest available cost layer first for the applicable product identity.
+
+The system must:
+
+Identify available cost layers.
+Order layers by receipt date and cost-layer sequence.
+Consume the oldest layer first.
+Split the issuance across layers when necessary.
+Record the quantity and cost consumed from each layer.
+Calculate the total issued cost.
+Link the issued cost to the project and Master Sales Record version.
+Preserve the cost-layer history.
+7.3 Serial-Numbered Equipment
+For serial-numbered equipment, the individual serial-number record controls identity and allocation.
+
+FIFO cost-layer tracking must still retain the acquisition cost and receipt sequence, but the system must not substitute one serial-numbered unit for another without a controlled change.
+
+7.4 Cost Corrections
+A cost-layer correction must not overwrite the original layer.
+
+The system must create:
+
+Original layer reference
+Corrected layer reference
+Correction reason
+Correcting user
+Date and time
+Approval status
+Affected project references
+Accounting adjustment reference
+If the affected inventory was already issued to a project, the correction must create a project-cost adjustment rather than silently changing historical project profitability.
+
+8. Project Allocation and Issuance
+Inventory may be allocated to a project only when:
+
+The project exists.
+The user is authorized.
+The product is available or reserved.
+The quantity is sufficient.
+The project has an approved or otherwise authorized scope requiring the item.
+The item is not already allocated to another project.
+The allocation record must include:
+
+Allocation ID
+Project ID
+Master Sales Record version
+Product identity
+Inventory item or cost layer
+Quantity
+Unit cost
+Total cost
+Allocation status
+Reserved date
+Issued date
+Installed date
+Returned date, if applicable
+User performing each action
+Notes
+Inventory issued to a project must flow to the project’s Material Cost or Equipment Cost according to the item classification.
+
+The system must preserve the distinction between:
+
+Estimated cost
+Reserved cost
+Issued actual cost
+Installed actual cost
+Returned cost
+Corrected cost
+9. Inventory Returns and Adjustments
+9.1 Returns
+A return must identify:
+
+Project
+Product or serial number
+Original issue transaction
+Return date
+Quantity
+Condition
+Return reason
+User
+Destination status
+Returned inventory may become:
+
+Available
+Damaged
+Scrapped
+Pending inspection
+The system must not automatically return an item to available inventory without a condition decision.
+
+9.2 Adjustments
+Inventory adjustments require:
+
+Adjustment reason
+Quantity or cost difference
+Supporting note
+Authorized user
+Date and time
+Approval where required
+Related product, serial number, cost layer, or project
+Adjustments must be recorded as transactions and must not overwrite the original inventory history.
+
+10. Fixed-Asset Data Model
+10.1 Common Fixed-Asset Fields
+Each fixed asset must include:
+
+Asset ID
+Asset category
+Identifying code
+Description
+Acquisition date
+Acquisition cost
+Vendor
+Source payable
+Placed-in-service date
+Useful life
+Depreciation method
+Accumulated depreciation
+Net book value
+Disposal status
+Disposal date
+Disposal proceeds
+Disposal reason
+Location
+Responsible user
+Created by
+Created date and time
+Last modified date and time
+Asset status
+10.2 Vehicle
+Required vehicle fields:
+
+VIN
+Make
+Model
+Year
+Description
+Acquisition date
+Acquisition cost
+Vendor
+Placed-in-service date
+Useful life
+Accumulated depreciation
+Net book value
+Location
+Disposal information
+10.3 Computer
+Required computer fields:
+
+Asset serial number
+Brand
+Model
+Description
+Acquisition date
+Acquisition cost
+Vendor
+Placed-in-service date
+Useful life
+Accumulated depreciation
+Net book value
+Assigned user or location
+Disposal information
+10.4 Office
+Required office fields:
+
+Address
+Description
+Acquisition date
+Acquisition cost
+Vendor
+Placed-in-service date
+Useful life
+Accumulated depreciation
+Net book value
+Disposal information
+10.5 Additional Categories
+Authorized users may create additional categories containing:
+
+Category name
+Identifying code
+Description
+Acquisition date
+Acquisition cost
+Placed-in-service date
+Useful life
+Depreciation data
+Creation of a new asset category must be audited.
+
+11. Fixed-Asset Lifecycle
+Permitted asset statuses:
+
+PLANNED
+ACQUIRED
+IN_SERVICE
+SUSPENDED
+FULLY_DEPRECIATED
+DISPOSED
+CANCELLED
+11.1 Acquisition
+An asset is acquired when the asset record is created and linked to the appropriate vendor, payable, invoice, or source document.
+
+11.2 Placed in Service
+Depreciation begins on the placed-in-service date.
+
+The system must not calculate depreciation before that date.
+
+The placed-in-service date must be validated as:
+
+On or after acquisition date
+A valid calendar date
+Recorded by an authorized user
+Immutable after depreciation begins except through a formal adjustment
+11.3 Depreciation
+The only supported depreciation method in this sprint is straight-line depreciation.
+
+The basic calculation is:
+
+text
+
+
+Depreciable Basis =
+Acquisition Cost
+- Salvage Value
+text
+
+
+Periodic Depreciation =
+Depreciable Basis
+÷ Useful Life
+The exact periodic convention—monthly, daily, or another approved convention—must be configured before production use.
+
+Accumulated depreciation may not exceed depreciable basis unless a formal correction is approved.
+
+11.4 Net Book Value
+text
+
+
+Net Book Value =
+Acquisition Cost
+- Accumulated Depreciation
+- Approved Impairments or Adjustments
+The system must preserve historical depreciation entries and must not overwrite prior-period depreciation.
+
+11.5 Disposal
+Disposal requires:
+
+Disposal date
+Disposal reason
+Disposal status
+Proceeds, if any
+Authorized user
+Approval, if required
+Final accumulated depreciation
+Final net book value
+Disposal accounting event
+Audit entry
+A disposed asset cannot return to IN_SERVICE without a formal reinstatement process.
+
+12. Loan Data Model
+Required loan fields:
+
+Loan ID
+Lender
+Loan number or reference
+Loan amount
+Loan date
+Term
+Interest rate
+Payment frequency
+Payment schedule
+Principal balance
+Interest paid
+Interest balance, if applicable
+Origination fees, if applicable
+Maturity date
+Loan status
+Collateral or related asset, if applicable
+Notes
+Created by
+Creation date and time
+12.1 Loan Statuses
+Permitted statuses:
+
+PLANNED
+ACTIVE
+PAID_OFF
+DELINQUENT
+MODIFIED
+DEFAULTED
+CANCELLED
+12.2 Loan Payments
+Each loan payment must include:
+
+Loan payment ID
+Loan ID
+Payment date
+Payment amount
+Principal portion
+Interest portion
+Fees
+Payment method
+Reference number
+User recording payment
+Supporting document
+Notes
+The system must preserve the original payment amount and the allocation between principal, interest, and fees.
+
+12.3 Loan Balance
+The system must calculate:
+
+text
+
+
+Principal Balance =
+Original Principal
+- Principal Paid
+± Approved Principal Adjustments
+Interest paid must be tracked separately from principal.
+
+A loan may not be marked PAID_OFF until the principal balance and other required amounts are resolved.
+
+13. Permissions
+13.1 Sales Manager and Comptroller
+May:
+
+View all inventory, asset, depreciation, and loan records.
+Approve inventory adjustments.
+Approve asset corrections.
+Enter or approve loan records.
+Review accounting effects.
+Resolve exceptions.
+View audit history.
+13.2 Installation Manager
+May:
+
+View authorized inventory.
+Reserve or issue installation-related equipment and materials.
+Record project allocation.
+Record actual materials used.
+Propose inventory corrections.
+View installation-related project costs.
+May not:
+
+Modify unrelated fixed assets.
+Change depreciation rules.
+Modify loan records unless separately authorized.
+13.3 Accounts Payable Associate
+May:
+
+View authorized inventory receipts and source payables.
+Link inventory receipts to payable records.
+View payable-related asset acquisition information.
+May not:
+
+Change inventory quantities without authorization.
+Change acquisition costs.
+Modify depreciation.
+Modify loans.
+13.4 Database Administrator
+May:
+
+Maintain authorized reference data.
+Maintain product identities and asset categories.
+Correct data through controlled administrative procedures.
+View records permitted by the database-administration role.
+May not automatically approve financial adjustments unless separately assigned that authority.
+
+13.5 Sales Associates, Technicians, and Other Contractors
+May view only inventory or equipment information required for their assigned work.
+
+They may not access:
+
+Unauthorized acquisition costs
+Depreciation values
+Loan records
+Asset financial reports
+Inventory valuation reports
+14. Accounting Integration
+Sprint 11 must create ledger-compatible events for:
+
+Inventory receipt
+Inventory issue
+Inventory return
+Inventory adjustment
+Fixed-asset acquisition
+Fixed-asset placement in service
+Depreciation
+Asset disposal
+Loan origination
+Loan principal payment
+Loan interest payment
+Loan adjustment
+Final chart-of-accounts mapping remains configurable for Sprint 12.
+
+Inventory and fixed-asset corrections must create adjustment events rather than modifying historical ledger events.
+
+15. Required Reports
+15.1 Inventory Report
+Must include:
+
+Product identity
+Brand
+Model
+Serial number, when applicable
+Quantity
+Available quantity
+Reserved quantity
+Issued quantity
+Inventory status
+Vendor
+Cost layer
+Unit cost
+Total cost
+Project allocation
+15.2 FIFO Cost-Layer Report
+Must include:
+
+Product identity
+Cost-layer ID
+Receipt date
+Original quantity
+Quantity consumed
+Quantity remaining
+Unit cost
+Total layer cost
+Source vendor
+Source payable
+Allocated projects
+15.3 Fixed-Asset Report
+Must include:
+
+Asset ID
+Category
+Identifying code
+Description
+Acquisition date
+Acquisition cost
+Placed-in-service date
+Useful life
+Accumulated depreciation
+Net book value
+Status
+Location
+Disposal information
+15.4 Depreciation Report
+Must include:
+
+Asset
+Period
+Beginning net book value
+Depreciation expense
+Accumulated depreciation
+Ending net book value
+Depreciation method
+Useful life
+Placed-in-service date
+Adjustment references
+15.5 Loan Report
+Must include:
+
+Loan
+Lender
+Original amount
+Loan date
+Interest rate
+Term
+Payment schedule
+Principal balance
+Principal paid
+Interest paid
+Fees
+Maturity date
