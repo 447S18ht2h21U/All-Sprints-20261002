@@ -1,0 +1,542 @@
+GECC Sales Back Office System — Sections 6–7 Reference
+Source: 6-Stitch-20261002.pdf and 7-Stitch-20261002.pdf
+Scope: Sprints 11–16: inventory/assets/loans, financial reporting, dashboard/search, notifications/files, testing/integrity, deployment/operations.
+Page references: PDF page numbers.
+
+1. System architecture
+Authoritative systems and services
+The GECC relational database is the system of record for operational, financial, workflow, document metadata, permissions, audit, and historical records.
+(6-Stitch pp. 1, 12; 7-Stitch pp. 27–28, 39)
+Google Sheets may remain a migration source, export target, or reporting destination but is not the system of record.
+(6-Stitch pp. 1, 12; 7-Stitch pp. 27–28)
+Production consists of:
+Application services
+Relational database
+Private file-storage service
+Email-delivery service
+Electronic-signature integration
+Background-task/job-processing service
+Audit-log storage
+Monitoring and alerting
+Backup storage
+Recovery environment or documented recovery destination
+Search index/search service, if used
+(7-Stitch pp. 27–28)
+Core data flow
+text
+
+
+Operational record or workflow event
+        ↓
+Controlled source event
+        ↓
+Ledger event, notification, document, dashboard update, or audit record
+        ↓
+Reports, search, dashboards, distributions, and exception handling
+Operational records remain the source of business events.
+Accounting records are generated from controlled source events.
+Documents reference their originating project, customer, Master Sales Record version, template version, and stored file version.
+Dashboards are derived from authoritative current records rather than manually maintained status fields.
+Corrections preserve history through reversals, adjustments, new versions, or superseding records.
+All important operations must be auditable through an append-only, tamper-evident audit chain.
+(6-Stitch pp. 1, 12, 19–23; 7-Stitch pp. 1–2, 20–26, 32–39)
+Environment architecture
+Development, QA/test, UAT, and production remain separate. Production data must not be copied into lower environments unless it is approved, masked, or de-identified. Each environment must identify its application version, database version, configuration version, deployment date, responsible administrator, test-data source, and known limitations.
+(7-Stitch pp. 3, 21–22)
+
+2. Sprint 11 — Inventory, fixed assets, and loans
+Decisions
+Inventory uses FIFO by product identity and cost layer.
+Serialized equipment remains individually identifiable for its entire lifecycle.
+Serial numbers cannot be reused after retirement, disposal, or cancellation.
+Inventory changes are recorded as transactions; the system must not rely on overwriting a single quantity or value field.
+Issued inventory flows to project cost categories:
+Equipment → Equipment Cost
+Materials → Material Cost
+Inventory, serial number, cost layer, project, and Master Sales Record version remain linked.
+Historical project profitability must not be silently recalculated after a later cost correction. Corrections create formal project-cost adjustments linked to the original calculation snapshot.
+Fixed assets use straight-line depreciation.
+Depreciation starts on the placed-in-service date, not the acquisition date.
+Historical depreciation entries are preserved; corrections create adjustment entries.
+Initial asset categories are Vehicles, Computers, and Offices. Additional categories require controlled administration.
+Loan payments separately track principal, interest, and fees.
+Loans and payments are manually recorded initially; lender and bank imports are deferred.
+Inventory, asset, depreciation, and loan activity must create ledger-compatible events for Sprint 12.
+Assets and loans with financial activity cannot be silently deleted.
+Inventory costs, asset values, depreciation, and loan balances are permission-controlled financial information.
+(6-Stitch pp. 1–2)
+Requirements
+The system must support:
+
+Product identities
+Serialized and nonserialized inventory
+Inventory receipts and cost layers
+FIFO issuance, including issuance across multiple cost layers
+Reservations and project allocations
+Returns, damage, scrap, and disposition decisions
+Negative-inventory prevention
+Duplicate-serial prevention
+Prevention of one serialized item being allocated to multiple active projects
+Fixed-asset acquisition, placed-in-service date, useful life, accumulated depreciation, net book value, disposal, and adjustments
+Straight-line depreciation without exceeding depreciable basis unless an approved adjustment exists
+Loan origination, payment schedules, principal, interest, fees, payoff, corrections, and balance reconciliation
+Searchable and reproducible inventory, asset, depreciation, and loan reports
+Dashboard exceptions for missing, inconsistent, overdue, or financially invalid records
+Tamper-evident audit records for adjustments, corrections, approvals, and security events
+(6-Stitch pp. 1–6)
+Sprint 11 exception conditions
+The dashboard must identify, as applicable:
+
+Inventory below threshold
+Reserved but not issued inventory
+Issued but not installed inventory
+Missing or duplicate serial numbers
+Missing cost layers
+Multi-project allocation
+Negative inventory
+Damaged inventory awaiting disposition
+Returned inventory awaiting inspection
+Missing asset placed-in-service date or useful life
+Depreciation exceeding basis
+Negative net book value
+Asset past useful life
+Asset awaiting disposal
+Overdue loan payment
+Loan balance mismatch
+Missing payment allocation
+Loan approaching maturity
+Missing source payable or acquisition document
+(6-Stitch p. 1)
+3. Sprint 12 — Ledger and financial reporting
+Accounting architecture
+The internal ledger is double-entry.
+No journal entry may post unless:
+Total Debits
+=
+Total Credits
+Total Debits=Total Credits
+
+Every posted entry references a valid source event or authorized formal adjustment.
+Posted entries are immutable.
+Corrections use a reversal, replacement entry, or formal adjustment with reason, authorization, audit record, and link to the original.
+The chart of accounts is configurable and supports Assets, Liabilities, Equity, Revenue, Expenses, Contra Accounts, and cash-flow classifications.
+Journal entries and lines retain source event, project, customer, vendor, contractor, reporting-period, approval, posting, reversal, and adjustment references.
+(6-Stitch pp. 12–15, 19–23)
+Required source events
+Accounting events are required for:
+
+Verified customer payment
+Approved customer refund
+Vendor payable creation
+Vendor payment
+Inventory receipt, issue, return, adjustment, and approved write-off
+Fixed-asset acquisition, placed-in-service event, depreciation, disposal, and value adjustment
+Loan origination, principal payment, interest payment, fee payment, principal adjustment, and payoff
+Retained-earnings closing
+Formal period adjustment
+(6-Stitch pp. 13–16)
+Cash-basis reporting decisions
+Primary operating reports use approved cash-basis policy.
+Verified customer receipts are required for cash-basis revenue recognition.
+Cash disbursements are required for cash-basis expense recognition, subject to approved presentation of non-cash items.
+Accounts receivable, accounts payable, inventory, fixed assets, accumulated depreciation, loans, and equity remain available for balance-sheet reporting.
+Non-cash events remain in the ledger and supporting reports even when excluded from cash-basis operating results.
+Monthly reporting periods are prepared on the fifth calendar day of the following month.
+Published periods are locked.
+Corrections to published or locked periods require formal adjustments.
+Published financial statements require approval and signatures from the Sales Manager and Comptroller.
+The Installation Manager does not sign financial statements.
+Published reports, signatures, approvals, and distribution records are permanently preserved.
+Reports must be reproducible from source records, ledger data, parameters, and the approved report version.
+(6-Stitch pp. 12, 19–23)
+Required reports
+Balance sheet
+Cash-flow statement
+Statement of operations
+Accounts receivable
+Accounts payable
+Inventory
+Depreciation
+Fixed assets
+Loans
+Retained earnings
+Working Capital Requirement
+Customer profitability
+Project profitability
+(6-Stitch pp. 12, 16–18)
+Key validations include:
+
+Balance sheet:
+Total Assets
+=
+Total Liabilities
++
+Total Equity
+Total Assets=Total Liabilities+Total Equity
+
+Cash-flow ending balance reconciles to the cash ledger.
+Receivables reconcile to invoice amounts, adjustments, verified payments, refunds, reversals, and remaining balances.
+Payables reconcile to amounts owed, payments, and adjustments.
+Inventory reports reconcile to FIFO layers.
+Fixed-asset and depreciation reports reconcile to asset records and depreciation entries.
+Loan reports reconcile to loan records.
+Customer and project profitability reconcile to prior approved project-cost and commission records.
+(6-Stitch pp. 16–18, 22–23)
+Period states
+Permitted states are:
+
+OPEN, PREPARING, PENDING_APPROVAL, APPROVED, PUBLISHED, LOCKED, ADJUSTMENT_PENDING, and REOPENED_BY_AUTHORIZED_EXCEPTION.
+
+A published period must not be ordinarily reopened or edited. The recommended approach is to correct it with a later formal adjustment.
+(6-Stitch pp. 16, 20–22)
+
+4. Sprint 13 — Dashboard and search
+Requirements
+The dashboard must derive values from current authoritative records and display, as authorized:
+
+Project identification code
+Customer and location
+Sales Associate and Technician
+Current project status
+Current task
+Assigned role or user
+Contract, invoice, certificate, installation, payment, and commission status
+Next required action
+Due date
+Days in current status
+Last activity timestamp
+Warning and exception indicators
+(6-Stitch pp. 24–28)
+The current task is the next incomplete task permitted by the project state machine. The next required action is derived from status, incomplete requirements, assignment, due date, exceptions, approvals, signatures, and payment verification.
+
+Search must support, subject to permissions:
+
+Customer, contact, project, project code, location, equipment, serial number, vendor, payable, and document searches
+Date, status, signature, payment, state, location, Sales Associate, Technician, overdue, expiring-document, and negative-profitability filters
+Role-based result filtering
+Financial-information masking
+Search and dashboard audit logging
+The system must not expose unauthorized records or even reveal their existence through search results, counts, exports, direct links, or dashboards.
+(6-Stitch pp. 24–28)
+
+Role views
+Sales Associate: assigned projects, operational statuses, own commission information; no unauthorized costs, financial statements, payment amounts, or other Sales Associates’ commissions.
+Sales Manager: all projects, operational tasks, financial and commission exceptions, negative-profit projects, and audit warnings.
+Comptroller: all financial/accounting exceptions, profitability, reports, period locks, and adjustments.
+Installation Manager: installation-related projects, technicians, scope, equipment, serial numbers, certificate tasks, and waiting-period exceptions; no unauthorized commission, payroll, or reports.
+Technician: assigned projects, approved scope, assigned tasks, equipment, serial requirements, installation status, and completion notes; no unauthorized prices, costs, commissions, payroll, or financial statements.
+Accounts Payable Associate: authorized vendors, payables, statuses, payment tasks, and necessary project information.
+Database Administrator: authorized operational and data-quality records; no automatic financial approval authority.
+Other Contractors: assigned projects, tasks, and required fields only.
+(6-Stitch pp. 27–28)
+5. Sprint 14 — Notifications and document/file management
+Decisions
+Notifications originate from controlled system events and workflow transitions.
+Initial channels are in-app notifications and email.
+Required workflow, security, approval, signature-expiration, and financial-report notifications cannot be disabled.
+Email templates are versioned; the exact template version used is retained.
+Every attachment references the exact stored document version sent.
+Failed messages preserve delivery status, failure reason, attachments, and retry history.
+Each customer has a customer-level file area; each project has a project-level file area linked to the customer.
+Signed documents, published financial reports, approved commission reports, and historical document versions cannot be silently replaced or edited.
+Replacement creates a new file/document version; the original remains preserved.
+File actions—including view, download, print, email, signature, export, archive, and restore—are permission-controlled and audited.
+The database is authoritative for file metadata, relationships, versions, permissions, and integrity references, even if binaries are stored in object storage.
+Required historical documents, signed documents, approved financial reports, commission reports, and audit-supporting files are retained permanently.
+Annual contractor summaries are generated on January 5 and emailed to applicable contractors.
+Sprint 14 uses the Sprint 08 signature workflow and must not create a duplicate signature system.
+Notification creation, delivery, failure, retry, read status, and preference changes are auditable.
+(7-Stitch pp. 1–3)
+Document metadata
+Generated documents must retain:
+
+Document ID and type
+Project and customer IDs
+Master Sales Record version
+Document and template versions
+Generation timestamp and user/process
+File reference
+Integrity hash
+Status
+Superseded-document reference
+Signed documents additionally retain the signature request reference, audit certificate, signer records, completion dates, and final signed PDF reference.
+(7-Stitch pp. 1–2)
+
+File controls
+Uploads must validate:
+
+File type and MIME type
+Size and filename
+Malware/security scan result where supported
+Checksum
+Source record
+User authorization
+Failed or quarantined files cannot become official project documents. A replacement must never overwrite the original binary.
+(7-Stitch pp. 1–2)
+
+6. Sprint 15 — Testing, security, and integrity
+Test strategy
+Testing includes:
+
+Unit, component, integration, database-constraint, workflow, end-to-end, security, performance, backup/restore, UAT, and regression testing
+Permission testing at screen, module, record, field, action, document, export, report, and API/service levels
+Financial reconciliation
+Payment, payable, inventory, asset, loan, commission, notification, email, file, migration, and recovery testing
+Document consistency against approved Master Sales Record data
+(7-Stitch pp. 4–5, 20–26)
+Required lifecycle coverage
+Tests must cover:
+
+Standard project lifecycle
+Scope changes and new Master Sales Record versions
+Payment verification, partial payments, overpayments, refunds, reversals, and exceptions
+Reporting-period preparation, approval, signature, publication, locking, and adjustment
+Workflow bypass attempts
+Unauthorized search, exports, direct URL/object-reference access, and restricted document access
+Generated-document consistency
+FIFO, serial numbers, depreciation, disposal, loans, commissions, and profitability
+Exact email attachment/version traceability
+(7-Stitch pp. 4–13, 24–26)
+Audit-chain tests
+The audit chain must detect:
+
+Alteration
+Deletion
+Reordering
+Insertion
+Replay
+Bypass of audit logging
+Ordinary users cannot edit, delete, reorder, disable, or bypass audit entries.
+(7-Stitch pp. 10–11)
+
+Release gates
+Release is blocked by:
+
+Unauthorized access or financial modification
+Incorrect payment verification, project completion, commission, or report totals
+Unbalanced journal entry
+Audit-integrity failure
+Data loss or corruption
+Material document inconsistency
+Failed backup restoration
+Duplicate or missing critical records
+Inability to preserve signed or published documents
+Any unresolved Blocker or Critical defect
+A verified backup must restore with database, file, ledger, report, permission, and audit integrity. Financial reconciliation, audit-chain verification, migration validation, UAT approval, and prior-sprint regression testing are mandatory gates.
+(7-Stitch pp. 20–26)
+
+7. Sprint 16 — Deployment and operations
+Production architecture and controls
+Production must use approved configuration for:
+
+Company identity and time zone
+Email sender identities
+Signature settings
+Templates and logo/artwork
+Financial periods
+Commission rates
+Default costs
+File-size limits
+Notification rules
+Retention classifications
+Roles and permissions
+Backup schedules
+Secrets, credentials, signing keys, tokens, and encryption keys must be stored in an approved secrets-management mechanism, never in source code or ordinary configuration files.
+(7-Stitch pp. 27–29)
+
+Migration
+Migration sources may include:
+
+Google Sheets
+Customers, projects, codes, documents
+Contractors and vendors
+Payments and payables
+Inventory, fixed assets, and loans
+Required stages:
+
+Source inventory and backup
+Source profiling
+Field mapping
+Duplicate detection
+Cleansing
+Test migration
+Test reconciliation
+Business review
+Approved production migration
+Post-migration validation
+Migration sign-off
+Each mapped field requires source field, destination entity/field, transformation rule, required/optional status, validation rule, exception behavior, data owner, and approval status.
+(7-Stitch pp. 30–32)
+
+Minimum reconciliation includes:
+
+Customer, project, and project-code counts
+Active and cancelled projects
+Documents
+Payments and receivables
+Payables
+Inventory quantities and values
+Fixed assets
+Loans
+Contractors
+Historical and audit references where available
+Release-blocking migration exceptions must be resolved before go-live.
+(7-Stitch pp. 31–32)
+
+Backup, recovery, monitoring
+Backups cover the database, files, metadata, templates, artwork, configuration, audit logs, notification/email history, and search-index rebuild information.
+
+Restore validation must check:
+
+Record counts
+Foreign keys
+File references and checksums
+User and role configuration
+Ledger balances
+Report reproducibility
+Audit-chain integrity
+Search functionality
+Notification configuration
+Monitoring covers application/database availability, storage, jobs, email, signatures, search, backups, authentication and permission failures, audit verification, report failures, payment verification, overdue work, payables, commissions, missing documents, data integrity, negative-profit projects, and locked-period adjustments.
+
+Critical alerts include database or file-storage failure, backup/restore failure, audit-chain failure, unbalanced ledger, unauthorized-access patterns, data corruption, and failed production migration.
+(7-Stitch pp. 32–36)
+
+Deployment and rollback
+Before go-live:
+
+Sprint 15 is approved.
+No release-blocking defects remain.
+Release candidate, migrations, configuration, users, roles, templates, artwork, email, signature services, migration data, monitoring, support, and rollback authority are approved.
+A verified backup and rollback point exist.
+Source-data changes are frozen as defined by the migration plan.
+Rollback must be authorized, preserve evidence, use the approved rollback point, prevent duplicate migration, verify restored data, reconcile financial records, and communicate system status. It must not silently reverse valid financial transactions.
+(7-Stitch pp. 36–39)
+
+8. Shared terminology
+Term	Definition
+Source event	Controlled operational event that produces an accounting, workflow, notification, or document effect.
+Journal entry	Double-entry accounting record created from a source event or formal adjustment.
+Journal line	Debit or credit line belonging to a journal entry.
+Cost layer	Inventory receipt quantity and unit-cost layer consumed under FIFO.
+Serialized inventory	Individually identifiable inventory tracked by unique serial number.
+Placed-in-service date	Date from which depreciation begins.
+Formal adjustment	Authorized correction linked to original records, periods, reports, or entries without overwriting history.
+Reporting period	Monthly financial period with preparation, approval, publication, and locking states.
+Published period	Approved financial period whose reports are finalized and locked.
+Current task	Next incomplete task permitted by the workflow state machine.
+Next required action	Primary action derived from state, incomplete requirements, approvals, signatures, due dates, and exceptions.
+Document version	Logical business-document revision.
+File version	Specific stored binary associated with a document version.
+Superseded document	Historical document replaced by a later version but retained.
+Integrity hash/checksum	Value used to detect file or record alteration.
+Notification event	Auditable event that creates an in-app or email notification.
+Audit chain	Append-only sequence in which each audit entry references the prior entry.
+Release-blocking defect	Defect that prevents release until fixed or formally approved under the defined severity rules.
+Migration exception	Source-data problem requiring correction, rejection, approval, or documented disposition.
+Operational owner	Role responsible for a production function, with an escalation path and backup owner.
+9. Cross-sprint dependencies
+Sprint 11 inventory, asset, depreciation, and loan events feed Sprint 12 ledger integration.
+Sprint 11 project-cost corrections must preserve prior Sprint 10 profitability snapshots.
+Sprint 12 financial statuses, exceptions, reports, and permissions feed Sprint 13 dashboards.
+Sprint 13 search and dashboard permissions must align with Sprint 12 financial permissions.
+Sprint 14 uses Sprint 08 signature workflow and depends on Sprint 12 report versions and Sprint 13 authorization behavior.
+Sprint 15 regression covers Sprints 00–14, including Sprint 08 signatures, Sprint 09 payments/payables, Sprint 10 costs/commissions, and Sprints 11–14.
+Sprint 16 depends on Sprint 15 acceptance and requires all prior historical documents, signatures, audit entries, financial records, and source references to remain intact.
+Deployment configuration must include approved commission rates, costs, templates, artwork, email, signatures, file storage, search, jobs, roles, retention, and reporting periods.
+10. Unresolved issues and recommended defaults
+Accounting and reporting
+Whether depreciation appears in the primary cash-basis statement or a separately labeled management presentation.
+Default: Show a separately identified non-cash line while clearly presenting cash-basis results. (6-Stitch p. 20)
+Treatment of Certificate-triggered payables before payment.
+Default: Show on the balance sheet and AP report; recognize cash-basis expense when paid. (p. 20)
+Revenue basis: gross receipts, adjusted invoice, or receipts net of refunds.
+Default: Verified receipts net of approved refunds. (p. 20)
+Period-end time zone and cutoff.
+Default: Configured company time zone, 11:59:59 p.m. local time. (p. 21)
+Fifth-day preparation when it falls on a non-business day.
+Default: Retain the fifth calendar day as the report date; permit actual preparation next business day. (p. 21)
+Retained-earnings closing frequency.
+Default: Track current earnings monthly and close formally annually. (p. 21)
+Working Capital Requirement formula and assumptions.
+Default: Configurable and Comptroller-approved before first official report. (p. 21)
+Journal-entry approval rules.
+Default: Automated validated entries may post; manual and formal-adjustment entries require authorized review. (p. 21)
+Report-version naming.
+Default: Sequential human-readable version plus integrity hash. (p. 21)
+Period reopening.
+Default: Do not reopen through ordinary workflow; use later-period adjustments. (p. 21)
+Cash-flow classification of loan, interest, asset, and disposal activity.
+Default: Configure by account/event type with Comptroller approval. (p. 21)
+Financial-report distribution list.
+Default: Sales Manager, Comptroller, and explicitly authorized recipients only. (p. 22)
+Inventory, assets, and loans
+Exact FIFO scope: product, location, brand/model, condition, or combination.
+Default: Product identity and cost layer, with location tracked separately. (6-Stitch p. 2)
+Number of inventory locations.
+Default: Model multiple locations even if one is initially configured.
+Which products require serialization.
+Default: Configurable by product identity; equipment serialized, consumables generally quantity-based.
+Reservation expiration.
+Default: No automatic release initially; flag stale reservations for authorized review.
+Depreciation frequency and partial-month convention.
+Default: Monthly, with formal month-end convention finalized in Sprint 12.
+Salvage value.
+Default: Optional field, default zero pending policy.
+Impairment workflow.
+Default: Preserve adjustment/audit structure; defer full workflow.
+Capitalization threshold.
+Default: Configurable and Comptroller-approved.
+Useful lives.
+Default: Stored per asset, with approved category defaults.
+Loan amortization and interest accrual.
+Default: Manual payment allocation initially; calculated schedules and accrual deferred.
+Asset disposal and inventory write-off approval.
+Default: Sales Manager or Comptroller approval; Comptroller performs financial review. (6-Stitch pp. 2–3)
+Files and notifications
+File-storage provider, maximum file sizes, accepted types, email provider, and sender identities.
+Customer email-consent rules.
+Authority to change contractor report addresses.
+Notification digest and email-open tracking.
+Retention classifications and legal holds beyond permanent-retention records.
+File-restoration authority.
+Default: Sales Manager, Comptroller, or authorized Database Administrator with reason.
+Whether ordinary correspondence is automatically captured.
+Default: Store only system-generated or explicitly recorded operational correspondence initially.
+Email retry limits and backoff.
+Default: Configurable exponential retry, then manual exception.
+External-recipient confirmation for sensitive documents.
+Attachments versus controlled portal links.
+Default: Defer customer portal; use approved attachments or controlled links. (7-Stitch pp. 3–4)
+Testing, recovery, and operations
+Independent penetration testing.
+Response-time, concurrency, record-volume, file-size, report-size, export-size, and background-delay targets.
+Recovery Point Objective and Recovery Time Objective.
+Backup frequency and retention rotation.
+Test-data reset process.
+Production audit-chain verification frequency.
+Default: At least daily and after restoration or migration.
+Migration reconciliation tolerances.
+Default: No unexplained differences in financial records, project codes, signed documents, payments, or audit history.
+Lower-environment masking standard.
+UAT approvers.
+Accessibility standard.
+Default: WCAG 2.1 AA or current organizational standard.
+Supported browsers and devices.
+Authority to defer High-severity defects.
+Separate recovery environment versus primary-environment restoration.
+Default: Separate recovery environment.
+Hosting model.
+Default: Managed infrastructure with documented access, backups, monitoring, and recovery.
+Support hours, go-live date, migration freeze duration, migration scope, primary/backup administrator, monitoring ownership, configuration approvers, incident-notification rules, maintenance windows, stabilization period, and whether Sprint 17 should be created.
+(7-Stitch pp. 23–24, 40–42)
+11. Handoff priorities
+Finalize accounting policies and Comptroller approvals.
+Define the permission matrix across records, fields, actions, documents, exports, reports, and APIs.
+Select storage, email, signature, search, job-processing, monitoring, and secrets-management services.
+Establish performance, backup, recovery, retention, accessibility, browser, and migration acceptance targets.
+Define report-version, period-close, adjustment, and distribution procedures.
+Complete test data, migration mappings, reconciliation rules, and exception ownership.
+Assign operational owners and backup owners for administration, finance, files, templates, artwork, email, signatures, backups, recovery, security, audit, and release approval.
+Produce the deployment, rollback, incident-response, backup/restore, migration, administrator, user, and financial-operations runbooks.
+Resolve or formally carry forward all open questions before Sprint 16 go-live approval.
